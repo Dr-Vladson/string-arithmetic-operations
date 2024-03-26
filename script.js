@@ -33,21 +33,50 @@ class StringWithArithmetics extends String {
 
     plus(str) {
         const intOfArg = this.constructor.convertStrToInt(str);
-        console.log(this.intOfStr);
-        console.log(intOfArg);
         if (!this.intOfStr || !intOfArg) return;
 
-        return (this.intOfStr + intOfArg).toString();
+        return new StringWithArithmetics(this.intOfStr + intOfArg);
     }
-    minus(str) {}
-    divide(str) {}
-    multiply(str) {}
+
+    minus(str) {
+        const intOfArg = this.constructor.convertStrToInt(str);
+        if (!this.intOfStr || !intOfArg || this.intOfStr < intOfArg) return;
+
+        return new StringWithArithmetics(this.intOfStr - intOfArg);
+    }
+
+    divide(str) {
+        const intOfArg = this.constructor.convertStrToInt(str);
+        if (!this.intOfStr || !intOfArg) return;
+
+        return new StringWithArithmetics(Math.floor(this.intOfStr / intOfArg));
+    }
+
+    multiply(str) {
+        const intOfArg = this.constructor.convertStrToInt(str);
+        if (!this.intOfStr || !intOfArg) return;
+
+        return new StringWithArithmetics(this.intOfStr * intOfArg);
+    }
 }
 
-console.log(StringWithArithmetics.convertStrToInt(454));
-console.log(StringWithArithmetics.convertStrToInt("00000565"));
-console.log(StringWithArithmetics.convertStrToInt("65650"));
-console.log(StringWithArithmetics.convertStrToInt("65600075258"));
-console.log(String);
-console.log(String.prototype);
-console.log(new StringWithArithmetics("121").plus("90567"));
+// some tests
+console.log(new StringWithArithmetics("900").plus("90")); // 990
+console.log(new StringWithArithmetics("90").plus("9000")); // 9090
+
+console.log(new StringWithArithmetics("90").minus("9000")); // undefined
+console.log(new StringWithArithmetics("900").minus("90")); // 810
+
+console.log(new StringWithArithmetics("910").divide("90")); // 10
+console.log(new StringWithArithmetics("90").divide("900")); // 0
+
+console.log(new StringWithArithmetics("90").multiply("900")); // 81000
+
+console.log(new StringWithArithmetics("00090").multiply("000900")); // 81000
+
+console.log(new StringWithArithmetics("9g0").multiply("3")); // undefined
+console.log(new StringWithArithmetics("90").multiply("3jk")); // undefined
+console.log(new StringWithArithmetics(90).multiply("3")); // 270
+console.log(new StringWithArithmetics().multiply("3")); // undefined
+console.log(new StringWithArithmetics("89").multiply()); // undefined
+console.log(new StringWithArithmetics("5").multiply("5").minus("5")); // 20
