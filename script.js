@@ -1,4 +1,4 @@
-class StringWithArithmetics extends String {
+class BigInteger {
     static charToNumDictionary = {
         ["0"]: 0,
         ["1"]: 1,
@@ -12,71 +12,137 @@ class StringWithArithmetics extends String {
         ["9"]: 9,
     };
 
-    static convertStrToInt(str) {
-        if (typeof str !== "string") return;
+    #value;
 
-        let result = 0;
-        for (let i = 0; i < str.length; i++) {
-            const char = str[i];
-            const num = this.charToNumDictionary[char];
-            if (num === undefined) return;
+    get value() {
+        return this.#value;
+    }
 
-            result += num * Math.pow(10, str.length - 1 - i);
+    static getIsStrBigInt(str) {
+        if (typeof str !== "string" || str.length === 0) return false;
+
+        for (let char of str) {
+            if (this.charToNumDictionary[char] === undefined) return false;
         }
-        return result;
+        return true;
     }
 
-    constructor(value) {
-        super(value);
-        this.intOfStr = this.constructor.convertStrToInt(this.valueOf());
+    getStrWithoutExtraZeros(str) {
+        if (typeof str !== "string") return null;
+        const firstNonZeroIndex = str
+            .split("")
+            .findIndex((char) => char !== "0");
+        if (firstNonZeroIndex === -1) return "0";
+        return str.slice(firstNonZeroIndex);
     }
 
-    plus(str) {
-        const intOfArg = this.constructor.convertStrToInt(str);
-        if (!this.intOfStr || !intOfArg) return;
-
-        return new StringWithArithmetics(this.intOfStr + intOfArg);
+    constructor(str) {
+        const strWithoutExtraZeros = this.getStrWithoutExtraZeros(str);
+        if (!this.constructor.getIsStrBigInt(strWithoutExtraZeros))
+            throw new SyntaxError("Invalid string was provided as big integer");
+        this.#value = strWithoutExtraZeros;
     }
 
-    minus(str) {
-        const intOfArg = this.constructor.convertStrToInt(str);
-        if (!this.intOfStr || !intOfArg || this.intOfStr < intOfArg) return;
+    #getTwoDigitNumPartsArray(num) {
+        if (typeof num !== "number" || isNaN(num)) return null;
 
-        return new StringWithArithmetics(this.intOfStr - intOfArg);
+        const strOfNum = Math.abs(num).toString();
+        const num1 = strOfNum[strOfNum.length - 1];
+        const num2 = strOfNum[strOfNum.length - 2];
+        return [
+            num1 ? this.constructor.charToNumDictionary[num1] : 0,
+            num2 ? this.constructor.charToNumDictionary[num2] : 0,
+        ];
     }
 
-    divide(str) {
-        const intOfArg = this.constructor.convertStrToInt(str);
-        if (!this.intOfStr || !intOfArg) return;
+    plus(bigInt) {
+        if (!(bigInt instanceof BigInteger))
+            throw new SyntaxError("Argument should be of BigInteger type");
 
-        return new StringWithArithmetics(Math.floor(this.intOfStr / intOfArg));
+        let biggestInt = this.#value;
+        let smallestInt = bigInt.#value;
+        if (biggestInt.length < smallestInt.length) {
+            biggestInt = bigInt.#value;
+            smallestInt = this.value;
+        }
+
+        const lengthDif = biggestInt.length - smallestInt.length;
+        let excess = 0;
+        const result = [];
+        for (let i = biggestInt.length - 1; i >= -1; i--) {
+            const smallestIntChar = smallestInt[i - lengthDif] || "0";
+            const biggestIntChar = biggestInt[i] || "0";
+
+            const sum =
+                this.constructor.charToNumDictionary[biggestIntChar] +
+                this.constructor.charToNumDictionary[smallestIntChar] +
+                excess;
+            const sumParts = this.#getTwoDigitNumPartsArray(sum);
+            result.unshift(sumParts[0]);
+            excess = sumParts[1];
+        }
+        if (result[0] === 0) result.shift();
+
+        return result.join("");
     }
 
-    multiply(str) {
-        const intOfArg = this.constructor.convertStrToInt(str);
-        if (!this.intOfStr || !intOfArg) return;
+    minus(bigInt) {
+        if (!(bigInt instanceof BigInteger))
+            throw new SyntaxError("Argument should be of BigInteger type");
 
-        return new StringWithArithmetics(this.intOfStr * intOfArg);
+        let biggestInt = this.#value;
+        let smallestInt = bigInt.#value;
+        if (biggestInt.length < smallestInt.length)
+            throw new SyntaxError(
+                "Argument mustn`t be greater than first big integer"
+            );
+
+        const lengthDif = biggestInt.length - smallestInt.length;
+        let excess = 0;
+        const result = [];
+        for (let i = biggestInt.length - 1; i >= -1; i--) {
+            if (i === lengthDif - 1 && !biggestInt[i] && excess !== 0) {
+                throw new SyntaxError(
+                    "Argument mustn`t be greater than first big integer"
+                );
+            }
+
+            const smallestIntChar = smallestInt[i - lengthDif] || "0";
+            const biggestIntChar = biggestInt[i] || "0";
+
+            let difference =
+                this.constructor.charToNumDictionary[biggestIntChar] -
+                this.constructor.charToNumDictionary[smallestIntChar] -
+                excess;
+            if (difference < 0) {
+                difference += 10;
+                excess = 1;
+            } else excess = 0;
+
+            const sumParts = this.#getTwoDigitNumPartsArray(difference);
+            result.unshift(sumParts[0]);
+        }
+
+        return this.getStrWithoutExtraZeros(result.join(""));
     }
 }
 
-// some tests
-console.log(new StringWithArithmetics("900").plus("90")); // 990
-console.log(new StringWithArithmetics("90").plus("9000")); // 9090
-
-console.log(new StringWithArithmetics("90").minus("9000")); // undefined
-console.log(new StringWithArithmetics("900").minus("90")); // 810
-
-console.log(new StringWithArithmetics("910").divide("90")); // 10
-console.log(new StringWithArithmetics("90").divide("900")); // 0
-
-console.log(new StringWithArithmetics("90").multiply("900")); // 81000
-
-console.log(new StringWithArithmetics("00090").multiply("000900")); // 81000
-
-console.log(new StringWithArithmetics("9g0").multiply("3")); // undefined
-console.log(new StringWithArithmetics("90").multiply("3jk")); // undefined
-console.log(new StringWithArithmetics(90).multiply("3")); // 270
-console.log(new StringWithArithmetics().multiply("3")); // undefined
-console.log(new StringWithArithmetics("89").multiply()); // undefined
-console.log(new StringWithArithmetics("5").multiply("5").minus("5")); // 20
+// some tests and comparison with BigInt
+console.log(
+    new BigInteger(
+        "0000000099999999999999999999999999999999999999999999999"
+    ).plus(new BigInteger("99897335535781229256266"))
+);
+console.log(
+    BigInt("0000000099999999999999999999999999999999999999999999999") +
+        BigInt("99897335535781229256266")
+);
+console.log(
+    new BigInteger("0000009999999966669991434127576956324365878970").minus(
+        new BigInteger("99897335535781229256266")
+    )
+);
+console.log(
+    BigInt("0000009999999966669991434127576956324365878970") -
+        BigInt("99897335535781229256266")
+);
