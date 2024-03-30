@@ -83,7 +83,7 @@ class BigInteger {
         }
         if (result[0] === 0) result.shift();
 
-        return result.join("");
+        return new BigInteger(result.join(""));
     }
 
     minus(bigInt) {
@@ -123,7 +123,7 @@ class BigInteger {
             result.unshift(sumParts[0]);
         }
 
-        return this.getStrWithoutExtraZeros(result.join(""));
+        return new BigInteger(this.getStrWithoutExtraZeros(result.join("")));
     }
 }
 
@@ -131,18 +131,30 @@ class BigInteger {
 console.log(
     new BigInteger(
         "0000000099999999999999999999999999999999999999999999999"
-    ).plus(new BigInteger("99897335535781229256266"))
+    ).plus(new BigInteger("99897335535781229256266")).value
 );
 console.log(
     BigInt("0000000099999999999999999999999999999999999999999999999") +
         BigInt("99897335535781229256266")
 );
+console.log("_____________________________________________________");
 console.log(
     new BigInteger("0000009999999966669991434127576956324365878970").minus(
         new BigInteger("99897335535781229256266")
-    )
+    ).value
 );
 console.log(
     BigInt("0000009999999966669991434127576956324365878970") -
         BigInt("99897335535781229256266")
 );
+console.log("_____________________________________________________");
+console.log(
+    new BigInteger("0000009999999966669991434127576956324365878970").multiply(
+        new BigInteger("99897335535781229256266")
+    ).value
+);
+console.log(
+    BigInt("0000009999999966669991434127576956324365878970") *
+        BigInt("99897335535781229256266")
+);
+console.log("_____________________________________________________");
