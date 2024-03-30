@@ -125,9 +125,49 @@ class BigInteger {
 
         return new BigInteger(this.getStrWithoutExtraZeros(result.join("")));
     }
+
+    multiply(bigInt) {
+        if (!(bigInt instanceof BigInteger))
+            throw new SyntaxError("Argument should be of BigInteger type");
+
+        let biggestInt = this.#value;
+        let smallestInt = bigInt.#value;
+        if (biggestInt.length < smallestInt.length) {
+            biggestInt = bigInt.#value;
+            smallestInt = this.value;
+        }
+
+        let excess = 0;
+        let result = new BigInteger("0");
+        for (let i = 0; i < smallestInt.length; i++) {
+            const smallestIntChar = smallestInt[i];
+            if (smallestIntChar === "0") continue;
+
+            const iterationResult = [];
+            for (let j = biggestInt.length - 1; j >= -1; j--) {
+                const biggestIntChar = biggestInt[j] || "0";
+
+                const product =
+                    this.constructor.charToNumDictionary[biggestIntChar] *
+                        this.constructor.charToNumDictionary[smallestIntChar] +
+                    excess;
+                const productParts = this.#getTwoDigitNumPartsArray(product);
+                iterationResult.unshift(productParts[0]);
+                excess = productParts[1];
+            }
+
+            for (let j = 1; j < smallestInt.length - i; j++) {
+                iterationResult.push(0);
+            }
+
+            result = result.plus(new BigInteger(iterationResult.join("")));
+        }
+
+        return result;
+    }
 }
 
-// some tests and comparison with BigInt
+// example of tests with comparison with BigInt
 console.log(
     new BigInteger(
         "0000000099999999999999999999999999999999999999999999999"
