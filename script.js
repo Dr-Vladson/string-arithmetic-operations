@@ -1,17 +1,4 @@
 class BigInteger {
-    static charToNumDictionary = {
-        ["0"]: 0,
-        ["1"]: 1,
-        ["2"]: 2,
-        ["3"]: 3,
-        ["4"]: 4,
-        ["5"]: 5,
-        ["6"]: 6,
-        ["7"]: 7,
-        ["8"]: 8,
-        ["9"]: 9,
-    };
-
     #value;
 
     get value() {
@@ -22,12 +9,12 @@ class BigInteger {
         if (typeof str !== "string" || str.length === 0) return false;
 
         for (let char of str) {
-            if (this.charToNumDictionary[char] === undefined) return false;
+            if (isNaN(Number(char))) return false;
         }
         return true;
     }
 
-    getStrWithoutExtraZeros(str) {
+    static getStrWithoutExtraZeros(str) {
         if (typeof str !== "string") return null;
         const firstNonZeroIndex = str
             .split("")
@@ -37,7 +24,8 @@ class BigInteger {
     }
 
     constructor(str) {
-        const strWithoutExtraZeros = this.getStrWithoutExtraZeros(str);
+        const strWithoutExtraZeros =
+            this.constructor.getStrWithoutExtraZeros(str);
         if (!this.constructor.getIsStrBigInt(strWithoutExtraZeros))
             throw new SyntaxError("Invalid string was provided as big integer");
         this.#value = strWithoutExtraZeros;
@@ -49,10 +37,7 @@ class BigInteger {
         const strOfNum = Math.abs(num).toString();
         const num1 = strOfNum[strOfNum.length - 1];
         const num2 = strOfNum[strOfNum.length - 2];
-        return [
-            num1 ? this.constructor.charToNumDictionary[num1] : 0,
-            num2 ? this.constructor.charToNumDictionary[num2] : 0,
-        ];
+        return [num1 ? Number(num1) : 0, num2 ? Number(num2) : 0];
     }
 
     compare(bigInt) {
@@ -82,7 +67,7 @@ class BigInteger {
         let smallestInt = bigInt.#value;
         if (biggestInt.length < smallestInt.length) {
             biggestInt = bigInt.#value;
-            smallestInt = this.value;
+            smallestInt = this.#value;
         }
 
         const lengthDif = biggestInt.length - smallestInt.length;
@@ -93,9 +78,7 @@ class BigInteger {
             const biggestIntChar = biggestInt[i] || "0";
 
             const sum =
-                this.constructor.charToNumDictionary[biggestIntChar] +
-                this.constructor.charToNumDictionary[smallestIntChar] +
-                excess;
+                Number(biggestIntChar) + Number(smallestIntChar) + excess;
             const sumParts = this.#getTwoDigitNumPartsArray(sum);
             result.unshift(sumParts[0]);
             excess = sumParts[1];
@@ -123,9 +106,7 @@ class BigInteger {
             const biggestIntChar = biggestInt[i] || "0";
 
             let difference =
-                this.constructor.charToNumDictionary[biggestIntChar] -
-                this.constructor.charToNumDictionary[smallestIntChar] -
-                excess;
+                Number(biggestIntChar) - Number(smallestIntChar) - excess;
             if (difference < 0) {
                 difference += 10;
                 excess = 1;
@@ -135,7 +116,9 @@ class BigInteger {
             result.unshift(sumParts[0]);
         }
 
-        return new BigInteger(this.getStrWithoutExtraZeros(result.join("")));
+        return new BigInteger(
+            this.constructor.getStrWithoutExtraZeros(result.join(""))
+        );
     }
 
     multiply(bigInt) {
@@ -160,9 +143,7 @@ class BigInteger {
                 const biggestIntChar = biggestInt[j] || "0";
 
                 const product =
-                    this.constructor.charToNumDictionary[biggestIntChar] *
-                        this.constructor.charToNumDictionary[smallestIntChar] +
-                    excess;
+                    Number(biggestIntChar) * Number(smallestIntChar) + excess;
                 const productParts = this.#getTwoDigitNumPartsArray(product);
                 iterationResult.unshift(productParts[0]);
                 excess = productParts[1];
