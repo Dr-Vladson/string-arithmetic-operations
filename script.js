@@ -55,6 +55,25 @@ class BigInteger {
         ];
     }
 
+    compare(bigInt) {
+        if (!(bigInt instanceof BigInteger))
+            throw new SyntaxError("Argument should be of BigInteger type");
+
+        const bigIntValue1 = this.#value;
+        const bigIntValue2 = bigInt.#value;
+
+        if (bigIntValue1.length > bigIntValue2.length) return 1;
+        if (bigIntValue1.length < bigIntValue2.length) return -1;
+
+        for (let i = 0; i < bigIntValue1.length; i++) {
+            const charInt1 = Number(bigIntValue1[i]);
+            const charInt2 = Number(bigIntValue2[i]);
+            if (charInt1 > charInt2) return 1;
+            if (charInt1 < charInt2) return -1;
+        }
+        return 0;
+    }
+
     plus(bigInt) {
         if (!(bigInt instanceof BigInteger))
             throw new SyntaxError("Argument should be of BigInteger type");
@@ -90,23 +109,16 @@ class BigInteger {
         if (!(bigInt instanceof BigInteger))
             throw new SyntaxError("Argument should be of BigInteger type");
 
-        let biggestInt = this.#value;
-        let smallestInt = bigInt.#value;
-        if (biggestInt.length < smallestInt.length)
-            throw new SyntaxError(
-                "Argument mustn`t be greater than first big integer"
-            );
+        const compareRusult = this.compare(bigInt);
+        if (compareRusult === -1) return null;
+        if (compareRusult === 0) return new BigInteger("0");
 
+        const biggestInt = this.#value;
+        const smallestInt = bigInt.#value;
         const lengthDif = biggestInt.length - smallestInt.length;
         let excess = 0;
         const result = [];
         for (let i = biggestInt.length - 1; i >= -1; i--) {
-            if (i === lengthDif - 1 && !biggestInt[i] && excess !== 0) {
-                throw new SyntaxError(
-                    "Argument mustn`t be greater than first big integer"
-                );
-            }
-
             const smallestIntChar = smallestInt[i - lengthDif] || "0";
             const biggestIntChar = biggestInt[i] || "0";
 
@@ -165,6 +177,41 @@ class BigInteger {
 
         return result;
     }
+
+    divide(devisor) {
+        if (!(devisor instanceof BigInteger))
+            throw new SyntaxError("Argument should be of BigInteger type");
+        if (devisor.#value === "0") throw new RangeError("Devision by 0");
+
+        if (devisor.#value === "1") return new BigInteger(this.#value);
+        const compareRusult = this.compare(devisor);
+        if (compareRusult === -1) return new BigInteger("0");
+        if (compareRusult === 0) return new BigInteger("1");
+
+        const devisorLength = devisor.#value.length;
+        let subDevident = this.#value.slice(0, devisorLength - 1);
+        let remainder = this.#value.slice(devisorLength - 1);
+        let result = "";
+        while (remainder) {
+            subDevident = subDevident + remainder[0];
+            remainder = remainder.slice(1);
+
+            let subResult = 0;
+            subDevident = new BigInteger(subDevident);
+            while (true) {
+                const subtractionResult = subDevident.minus(devisor);
+                if (!subtractionResult) break;
+
+                subDevident = subtractionResult;
+                subResult++;
+            }
+            subDevident = subDevident.value;
+            result += subResult;
+        }
+
+        if (result === "") result = "0";
+        return new BigInteger(result);
+    }
 }
 
 // example of tests with comparison with BigInt
@@ -198,3 +245,12 @@ console.log(
         BigInt("99897335535781229256266")
 );
 console.log("_____________________________________________________");
+console.log(
+    new BigInteger("0000009999999966669991434127576956324365878970").divide(
+        new BigInteger("99897335535781229256266")
+    ).value
+);
+console.log(
+    BigInt("0000009999999966669991434127576956324365878970") /
+        BigInt("99897335535781229256266")
+);
